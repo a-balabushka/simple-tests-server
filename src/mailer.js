@@ -18,10 +18,25 @@ export function sendConfirmationEmail(user) {
   const email = {
     from,
     to: user.email,
-    subject: "Welcome to SimpleTests",
+    subject: "SimpleTests: welcome!",
     text: `
     Welcome to SimpleTests. Please, confirm your email:
     ${user.generateConfirmationUrl()}
+    `,
+  };
+
+  transport.sendMail(email);
+}
+
+export function sendResetPasswordEmail(user) {
+  const transport = setup();
+  const email = {
+    from,
+    to: user.email,
+    subject: "SimpleTests: reset password",
+    text: `
+    Reset password link:
+    ${user.generateResetPasswordLink()}
     `,
   };
 
