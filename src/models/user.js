@@ -1,7 +1,6 @@
 import mongoose from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import uniqueValidator from "mongoose-unique-validator";
 
 const schema = new mongoose.Schema(
   {
@@ -10,6 +9,20 @@ const schema = new mongoose.Schema(
       index: true,
       lowercase: true,
       unique: true,
+      required: true,
+    },
+    username: {
+      type: String,
+      lowercase: true,
+      unique: true,
+      required: true,
+    },
+    firstName: {
+      type: String,
+      required: true,
+    },
+    lastName: {
+      type: String,
       required: true,
     },
     passwordHash: { type: String, required: true },
@@ -61,7 +74,5 @@ schema.methods.generateJWT = function generateJWT() {
     process.env.JWT_SECRET
   );
 };
-
-schema.plugin(uniqueValidator, { message: "This email is already taken" });
 
 export default mongoose.model("User", schema);
