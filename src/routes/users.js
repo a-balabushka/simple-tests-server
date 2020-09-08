@@ -25,7 +25,7 @@ router.post("/", async function (req, res) {
       await user
         .save()
         .then((user) => {
-          // sendConfirmationEmail(user);
+          sendConfirmationEmail(user);
           res.json({ user: user.toAuthJSON() });
         })
         .catch((error) => res.status(400).json(error));

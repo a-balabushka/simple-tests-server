@@ -22,19 +22,29 @@ router.post("/", async function (req, res) {
         .json({ error: { email: "No user with this email" } });
     }
   } catch (e) {
-    await res.status(500).json({ error: { global: "Error. Something went wrong..." } } );
+    await res
+      .status(500)
+      .json({ error: { global: "Error. Something went wrong..." } });
   }
 });
 
-router.post("/confirmation", (req, res) => {
+router.post("/confirmation", async function (req, res) {
   const { token } = req.body;
-  User.findOneAndUpdate(
-    { confirmationToken: token },
-    { confirmationToken: "", confirmed: true },
-    { new: true }
-  ).then((user) =>
-    user ? res.json({ user: user.toAuthJSON() }) : res.status(400).json({})
-  );
+
+  try {
+    const user = await User.findOneAndUpdate(
+      { confirmationToken: token },
+      { confirmationToken: "", confirmed: true },
+      { new: true }
+    );
+    user
+      ? await res.json({ user: user.toAuthJSON() })
+      : await res.status(400).json({ error: { token: "Invalid token" } });
+  } catch (e) {
+    await res
+      .status(500)
+      .json({ error: { global: "Error. Something went wrong..." } });
+  }
 });
 
 router.post("/reset_password_request", async function (req, res) {
@@ -60,33 +70,48 @@ router.post("/reset_password_request", async function (req, res) {
   }
 });
 
-router.post("/validate_token", (req, res) => {
+router.post("/validate_token", async function (req, res) {
   const { token } = req.body;
-  jwt.verify(token, process.env.JWT_SECRET, (err) => {
-    if (err) {
-      res.status(401).json({});
-    } else {
-      res.json({});
-    }
-  });
+
+  try {
+    await jwt.verify(token, process.env.JWT_SECRET, async function (err) {
+      err
+        ? await res.status(401).json({ error: { global: "Invalid token" } })
+        : await res.json({});
+    });
+  } catch (e) {
+    await res
+      .status(500)
+      .json({ error: { global: "Error. Something went wrong..." } });
+  }
 });
 
-router.post("/reset_password", (req, res) => {
+router.post("/reset_password", async function (req, res) {
   const { password, token } = req.body.data;
-  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
-    if (err) {
-      res.status(401).json({ errors: { global: "Invalid token" } });
-    } else {
-      User.findOne({ _id: decoded._id }).then((user) => {
+
+  try {
+    await jwt.verify(token, process.env.JWT_SECRET, async function (
+      err,
+      decoded
+    ) {
+      if (err) {
+        await res.status(401).json({ error: { global: "Invalid token" } });
+      } else {
+        const user = await User.findOne({ _id: decoded._id });
         if (user) {
-          user.setPassword(password);
-          user.save().then(() => res.json({}));
+          await user.setPassword(password);
+          await user.save();
+          await res.json({});
         } else {
-          res.status(404).json({ errors: { global: "Invalid token" } });
+          await res.status(404).json({ error: { global: "Invalid token" } });
         }
-      });
-    }
-  });
+      }
+    });
+  } catch (e) {
+    await res
+      .status(500)
+      .json({ error: { global: "Error. Something went wrong..." } });
+  }
 });
 
 export default router;
